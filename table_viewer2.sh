@@ -20,14 +20,14 @@ function hor_centr() {
 }
 
 # Массив с опциями меню
-options=("Пункт1" "Пункт2" "Пункт3" "Пункт4" "Пункт5")
+options=("Пункт1" "Пункт2" "Print input file" "Пункт4" "Power_on" "Выход")
 selected=0
 
 
 # Функция для отображения меню
 function display_menu() {
     clear
-    color_echo 33 'Сборщик региона v.1.0 от 04.05.2025'
+    color_echo 33 'Сборщик региона v.1.2 от 04.05.2025'
     for i in "${!options[@]}"; do
         if [ "$i" == "$selected" ]; then
             # Подсвечиваем выбранный пункт
@@ -36,6 +36,61 @@ function display_menu() {
             hor_centr 33 "${options[i]}"
         fi
     done
+}
+
+function power_on() {
+    count=0
+for mgmt in $(cut -c 9-17 "$file")
+do
+    if [ $count -gt 1 ]; then
+        if [ $count -lt 10 ]; then
+        echo $mgmt
+        sleep 1
+        ((count++))
+        else 
+        ((count++))
+        fi
+    else 
+        ((count++))
+    fi
+done
+}
+
+function handle_selection() {
+    case "$selected" in
+        0)
+            clear
+            color_echo 33 "Проверка работы меню"
+            sleep 2
+            ;;
+        1)
+            clear
+            color_echo 35 "Еще одна проверка"
+            sleep 2
+            ;;
+        2)
+            hor_centr 32 "$file"
+            power_on "$file"
+            hor_centr 32 "Нажмите любую клавишу для продолжения"
+            read -n 1 -s
+            ;;
+        3)
+            hor_centr 32 "Пункт работает"
+            # Логика обработки пункта 3 здесь
+            ;;
+        4)
+            # clear
+            # hor_centr 32 "$file"
+            power_on "$file"
+             hor_centr 32 "Нажмите любую клавишу для продолжения"
+            read -n 1 -s
+            ;;
+        5)
+            clear
+            hor_centr 31 "Пока!"
+            sleep 1
+            ;;
+    esac
 }
 
 #Функция отображения таблицы с хостами
@@ -91,10 +146,10 @@ function table_viewer () {
     ' "$file"
 }
 
-# Основной цикл
-while true; do
+while :; do
     display_menu
-    table_viewer 2 3 4
+    table_viewer 1 2 3 4 10 11 12 13
+
     # Управление стрелками вверх и вниз
     read -rsn3 input
     case "$input" in
@@ -103,47 +158,34 @@ while true; do
             if [ "$selected" -ge "${#options[@]}" ]; then
                 selected=0
             fi
+            continue
             ;;
         $'\e[A') # Стрелка вверх
             ((selected--))
             if [ "$selected" -lt 0 ]; then
                 selected=$((${#options[@]} - 1))
             fi
+            continue
             ;;
-        $'\e[0~') # F1 (для примера)
+        $'\n') # F1 (для примера)
             break
             ;;
-        $'\e[1~') # Home (для примера)
-            break
-            ;;
-        $'\e[3~') # Delete (для примера)
-            break
-            ;;
-        *)
-            break
-            ;;
+        # $'\e[1~') # Home (для примера)
+        #     break
+        #     ;;
+        # $'\e[3~') # Delete (для примера)
+        #     break
+        #     ;;
+       
     esac
 
+    # Обработка выбора после навигации
+handle_selection
+if [[ $selected == 5 ]]; then
+clear
+return
+fi
 done
-# Обработка выбора
-    case "$selected" in
-                0)
-                ;;
-                1)
-                clear
-                color_echo 33 "Проверка работы меню"
-                sleep 5
-                ;;
-                2)
-                clear
-                color_echo 35 "Еще одна проверка"
-                sleep 5
-                ;;
-                3)
-                ;;
-                5)
-                ;;
-    esac
 
 # Вывод выбранного пункта
 #echo "Выбран: ${options[selected]}"
