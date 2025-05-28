@@ -1,5 +1,5 @@
-kjdu01
-1 2 3 4 10 11 12 13
+kjdu01,1
+1 2 4 6 10 11 13 15
 rack1,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs,rack2,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs
 ry01p01,10.10.0.1,abc123,10.0.0.1,H95,on,+,+,+,ry02p01,10.10.0.21,abc143,10.0.0.21,M56,on,+,+,+
 ry01p02,10.10.0.2,abc124,10.0.0.2,H95,off,+,+,+,ry02p02,10.10.0.22,abc144,10.0.0.22,M56,on,+,+,+
