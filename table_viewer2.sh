@@ -1,10 +1,7 @@
 #!/bin/bash
 
-#Определяем файл .csv
-file=$1
-column_to_view=`awk 'NR==2' $file`
-# Определяем разделитель (запятая) .csv файла
-FS=','
+#Определяем разделитель (запятая) .csv файла
+
 
 function color_echo() {
     echo -e "\e[$1m$2\e[0m"
@@ -18,19 +15,6 @@ function hor_centr() {
     empty_space=$(( (width - text_length) / 2 ))
     printf "%${empty_space}s%s\n" "" "$text"
 }
-
-# Массив с опциями меню
-
-selected=0
-
-artifact=`awk -v FS="," 'NR==1{gsub(/^ +| +$/, "");print $2}' $file`
-if [[ "$artifact" == "1" ]]; then
-options=("Пункт11" "Пункт12" "Print input file13" "Пункт14" "Power_on15" "Выход")
-elif [[ "$artifact" == "2" ]]; then
-options=("Пункт21" "Пункт22" "Print input file23" "Пункт24" "Power_on25" "Выход")
-else echo "Хрен пойми что!$artifact"
-fi
-selected=0
 
 # Функция для отображения меню
 function display_menu() {
@@ -56,21 +40,22 @@ do
     if [[ $RANDOM -gt 16386 ]]
     then
         #awk -F',' 'NR>3{ if($6 == "on") $6 = "off"; print }' OFS=',' $file >> output.csv
-        dynamic_array+=("off")  
+        dynamic_array+=("Off")  
         hor_centr 31 "$mgmt Power Off" 
         
         sleep 1
         ((count++))
     else
         #awk -F',' 'NR>3{ if($6 == "off") $6 = "on"; print }' OFS=',' $file >> output.csv
-        dynamic_array+=("on")
-        hor_centr 31 "$mgmt Power on"
+        dynamic_array+=("On")
+        hor_centr 31 "$mgmt Power On"
         sleep 1
         ((count++))
     fi
 done
 
 echo "Массив обработанных данных ${dynamic_array[@]}"
+awk -i inplace -va="$(echo "${dynamic_array[@]}")" 'BEGIN{OFS=FS=","; split(a,b," ")} NR<4{print $0} NR>3{ $6 = b[NR-3]; print }' $file
 }
 
 function handle_selection() {
@@ -162,7 +147,7 @@ function table_viewer() {
         draw_line("+", "-", "+")
         
         # Печатаем заголовок
-        printf("| ")
+        printf("|")
         for (i=1; i<=nfields; i++) {
             col = cols_arr[i]
             printf("%-*s|", max[i], header[col])
@@ -185,52 +170,28 @@ function table_viewer() {
     ' "$file"
 }
 
-# while :; do
-#     display_menu
-#     table_viewer $file $column_to_view
-
-#     # Управление стрелками вверх и вниз
-#     read -rsn3 input
-#     case "$input" in
-#         $'\e[B') # Стрелка вниз
-#             ((selected++))
-#             if [ "$selected" -ge "${#options[@]}" ]; then
-#                 selected=0
-#             fi
-#             continue
-#             ;;
-#         $'\e[A') # Стрелка вверх
-#             ((selected--))
-#             if [ "$selected" -lt 0 ]; then
-#                 selected=$((${#options[@]} - 1))
-#             fi
-#             continue
-#             ;;
-#         $'\n') # F1 (для примера)
-#         clear
-#         hor_centr 32 "Переключаю меню..."
-#         sleep 1
-#         awk -i inplace -v FS="," -v OFS="," 'NR==1{$2="2"} {print}' host_data2.csv
-#             break
-#             ;;
-#         #  $'\e[1~') # Home (для примера)
-#         # awk -i inplace -v FS="," -v OFS="," 'NR==1{gsub(/^ +| +$/, "");{$2="2"} {print}' $file
-#         #      break
-#         #      ;;
-#         $'\e[9') # Tab
-#             clear
-#             color_echo 32 "Вы нажали Tab. Выполняется действие..."
-#             sleep 2
-#             clear
-#     esac
+FS=','
+selected=0
+file=$1
+if [[ -e $file ]]; then echo "Файл найден."; sleep 1
+else echo "Файл не найден."; sleep 1 
+fi
+artifact=`awk -v FS="," 'NR==1{gsub(/^ +| +$/, "");print $2}' $file`
+if [[ "$artifact" == "1" ]]; then
+options=("Пункт11" "Пункт12" "Print input file13" "Пункт14" "Power_on15" "Выход")
+elif [[ "$artifact" == "2" ]]; then
+options=("Пункт21" "Пункт22" "Print input file23" "Пункт24" "Power_on25" "Выход")
+else echo "Хрен пойми что!$artifact"
+fi
+column_to_view=`awk 'NR==2' $file`
 
 # Основной цикл
 while :; do
     display_menu
     table_viewer $file $column_to_view
 
-    # Считываем ввод
-    read -rsn1 input
+# Считываем ввод
+read -rsn1 input
 
     # Обработка одиночных нажатий
     case "$input" in
@@ -247,7 +208,7 @@ while :; do
                 '[A') # Стрелка вверх
                     ((selected--))
                     if [ "$selected" -lt 0 ]; then
-                        selected=$((${#options[@]} - 1))
+                        selected=${#options[@]}
                     fi
                     continue
                     ;;
@@ -277,8 +238,3 @@ while :; do
     return
     fi
 done
-
-
-
-# Вывод выбранного пункта
-#echo "Выбран: ${options[selected]}"
