@@ -181,18 +181,22 @@ color_echo 32 "Напишите название региона для сбор�
 color_echo 32 "Напишите количество серверных стоек для сборки региона:"; read row_rack
 color_echo 32 "Напишите количество серверов в стойке:"; read row_pods
 echo "$row_region,1" > $file
-echo "1 2 4 6 10 11 13 15" >> $file
-echo "rack1,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs,rack2,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs" >> $file
+echo "1 2 4 6" >> $file
+echo "rack1,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs" >> $file
 
 host_array=()  
 for r in  $(seq -w 1 $row_rack); do
 #color_echo 33 "Rack $r"
     for p in $(seq -w 1 $row_pods); do 
-    host_array+=`printf "%s-sb%sp%s\n" "$row_region" "$r" "$p"`
+    echo ",,,,,,,,," >> $file
+    host_array+=`printf "%s-sb%02dp%s " "$row_region" "$r" "$p"`
     done
     echo "Массив созданных имен хостов ${host_array[@]}"
-    sleep 2
+    hor_centr 32 "Нажмите любую клавишу для продолжения"
+    read -n 1 -s
+    #awk -i inplace -va="$(echo "${host_array[@]}")" 'BEGIN{OFS=FS=","; split(a,b," ")} NR<4{print $0} NR>3{ $6 = b[NR-3]; print }' $file
 done
+awk -i inplace -va="$(echo "${host_array[@]}")" 'BEGIN{OFS=FS=","; split(a,b," ")} NR<4{print $0} NR>3{ $1 = b[NR-3]; print }' $file
 
 else color_echo 33 "Без файла входных данных .csv програма не сможет работать!!!"
 break
