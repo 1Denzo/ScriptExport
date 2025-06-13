@@ -1,34 +1,5 @@
 #!/bin/bash
 
-# while [ ! -f "$file_new" ]; do
-# echo "Файл не найден. Давайте созданим его в ручном режиме (y/n)?";
-# read anser
-# if [[ "$anser" == "y" ]]; then
-# color_echo 32 "Напишите название региона для сборки:"; read row_region
-# color_echo 32 "Напишите количество серверных стоек для сборки региона:"; read row_rack
-# color_echo 32 "Напишите количество серверов в стойке:"; read row_pods
-# # echo "$row_region,1" > $file_new
-# # echo "1 2 4 6" >> $file_new
-# echo "rack1,mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs" >> $file_new
-
-# host_array=()  
-# for r in  $(seq -w 1 $row_rack); do
-# color_echo 33 "Rack $r"
-#     for p in $(seq -w 1 $row_pods); do 
-#     echo ",,,,,,,,," >> $file_new
-#     host_array+=`printf "%s-rc%02dp%02d " "$row_region" "$r" "$p"`
-#     done    
-# done
-# echo "Массив созданных имен хостов ${host_array[@]}"
-#     hor_centr 32 "Нажмите любую клавишу для продолжения"
-#     read -n 1 -s
-# awk -i inplace -va="$(echo "${host_array[@]}")" 'BEGIN{OFS=FS=","; split(a,b," ")} NR>1{ $1 = b[NR-1]; print }' $file_new
-
-# else color_echo 33 "Без файла входных данных .csv програма не сможет работать!!!"
-# break
-# fi
-# done
-
 color_echo() {
     echo -e "\e[$1m$2\e[0m"
 }
@@ -48,12 +19,11 @@ name_string=""
 for r in  $(seq -w 1 $row_rack); do
 rack="rack$r"
 color_echo 33 "$rack"
-name_string=",$name_string$rack$name_str"
+name_string="$name_string$rack$name_str,"
     for p in $(seq -w 1 $row_pods); do 
-    echo ",,,,,,,,," >> $file_new
+    echo ",,,,,,,," >> $file_new
     (( counter++ ))
-    
-    host_array+=`printf "%s-rc%02dp%02d " "$row_region" "$r" "$p"`
+    host_array+=$(printf "%s-rc0%s-p%02d " "$row_region" "$r" "$((10#$p))")
     bmc_array+=`printf "192.168.100.%s " "$counter"`
     serial_array+=`printf "ABC01020X%s " "$counter"`
     os_ip_array+=`printf "10.100.100.%s " "$counter"`
@@ -80,4 +50,5 @@ END {
 }' $file_new > output.csv
 sort -k1 output.csv > output2.csv
 rm -rf output.csv
-awk -i inplace -v csv_name="$name_string" 'BEGIN {print csv_name } {print}' output2.csv
+awk -v ORS='\n' -v csv_name="$name_string" 'BEGIN { print csv_name } 1' output2.csv > temp_file && mv temp_file output2.csv
+
