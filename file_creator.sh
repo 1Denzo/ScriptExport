@@ -16,17 +16,37 @@ os_ip_array=()
 counter=0
 name_str=",mgmt,serial,ip,pos,PwSt,Time,RDNA,Crs"
 name_string=""
+arr=(1 2 4 6)
+column_index_arr=()
+
+# Начинаем с добавления первого базового массива
+column_index_arr+=("${arr[@]}")
+
+for ((i = 1; i <= (( $row_rack -1 )); i++)); do
+    temp=() # Временный массив для хранения новых элементов
+    for num in "${arr[@]}"; do
+        temp+=($((num + 9 * i))) # Вычисляем новые элементы
+    done
+    column_index_arr+=("${temp[@]}") # Правильно добавляем элементы в общий массив
+done
+
+# Выводим итоговый массив
+echo "${column_index_arr[@]}"
 for r in  $(seq -w 1 $row_rack); do
 rack="rack$r"
-color_echo 33 "$rack"
 name_string="$name_string$rack$name_str,"
     for p in $(seq -w 1 $row_pods); do 
     echo ",,,,,,,," >> $file_new
     (( counter++ ))
-    host_array+=$(printf "%s-rc0%s-p%02d " "$row_region" "$r" "$((10#$p))")
+    # if (( $p == 1 && $r <= 3)); then
+    # host_array+=$(printf "%s-rc%sc%s " "$row_region" "$r" "$r")
+    # os_ip_array+=`printf "10.100.200.%s " "$counter"`
+    # else
+    host_array+=$(printf "%s-rc0%sp%02d " "$row_region" "$r" "$((10#$p))")
+    os_ip_array+=`printf "10.100.100.%s " "$counter"`
+    # fi
     bmc_array+=`printf "192.168.100.%s " "$counter"`
     serial_array+=`printf "ABC01020X%s " "$counter"`
-    os_ip_array+=`printf "10.100.100.%s " "$counter"`
     done    
 done
 echo $name_string
@@ -50,5 +70,15 @@ END {
 }' $file_new > output.csv
 sort -k1 output.csv > output2.csv
 rm -rf output.csv
-awk -v ORS='\n' -v csv_name="$name_string" 'BEGIN { print csv_name } 1' output2.csv > temp_file && mv temp_file output2.csv
 
+column_index_str="${column_index_arr[@]}"
+awk -v ORS='\n' -v FS=';' -v csv_name="$name_string" -v region="$row_region,1" -v column_index_str="$column_index_str" '
+BEGIN {
+    print region;
+    n = split(column_index_str, cols, " ");  # Преобразование строки в массив
+    for(i=1; i<=n; i++) printf("%d%s", cols[i], (i<n ? " ":"\n"));  # Корректный вывод
+    print csv_name
+}
+{
+    print
+}' output2.csv > temp_file && mv temp_file output2.csv
