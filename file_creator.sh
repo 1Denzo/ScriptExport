@@ -82,3 +82,12 @@ BEGIN {
 {
     print
 }' output2.csv > temp_file && mv temp_file output2.csv
+
+awk -F ',' -v OFS=',' -v region="$row_region" "
+    NR==4 {
+        \$1 = region \"-rc1c1\";
+        \$10= region \"-rc2c2\";
+        \$19= region \"-rc3c3\";
+    }
+    { print }
+" output2.csv > temp.csv && mv temp.csv output3.csv

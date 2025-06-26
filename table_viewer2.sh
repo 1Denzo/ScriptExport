@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#Определяем разделитель (запятая) .csv файла
-
-
 function color_echo() {
     echo -e "\e[$1m$2\e[0m"
 }
@@ -43,19 +40,20 @@ do
         dynamic_array+=("Off")  
         hor_centr 31 "$mgmt Power Off" 
         
-        sleep 1
+        sleep 0.5
         ((count++))
     else
         #awk -F',' 'NR>3{ if($6 == "off") $6 = "on"; print }' OFS=',' $file >> output.csv
         dynamic_array+=("On")
         hor_centr 31 "$mgmt Power On"
-        sleep 1
+        sleep 0.5
         ((count++))
     fi
 done
 
 echo "Массив обработанных данных ${dynamic_array[@]}"
 awk -i inplace -va="$(echo "${dynamic_array[@]}")" 'BEGIN{OFS=FS=","; split(a,b," ")} NR<4{print $0} NR>3{ $6 = b[NR-3]; print }' $file
+awk -i inplace 'BEGIN{OFS=FS=" "} NR == 2 {$2 = 6} { print $0 }' $file
 }
 
 function handle_selection() {
@@ -172,7 +170,7 @@ function table_viewer() {
 
 FS=','
 selected=0
-file=host_data.csv
+file=$1
 while [ ! -f "$file" ]; do
 echo "Файл не найден. Давайте созданим его в ручном режиме (y/n)?";
 read anser
@@ -201,6 +199,12 @@ else color_echo 33 "Без файла входных данных .csv прог�
 break
 fi
 done
+
+rack1=awk -v FS="," 'NR>=4 {print $1}' output3.csv
+rack2=awk -v FS="," 'NR>=4 {print $10}' output3.csv
+rack3=awk -v FS="," 'NR>=4 {print $19}' output3.csv
+rack4=awk -v FS="," 'NR>=4 {print $28}' output3.csv
+
 # Основной цикл
 while [ -f "$file" ]; do
     artifact=`awk -v FS="," 'NR==1{gsub(/^ +| +$/, "");print $2}' $file`
